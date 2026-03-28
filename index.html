@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Калькулятор срока годности</title>
+  <style>
+    :root {
+      --bg: #eaf6ff;
+      --panel: rgba(255, 255, 255, 0.88);
+      --card: #f8fcff;
+      --text: #10233f;
+      --muted: #5f7897;
+      --accent: #0ea5e9;
+      --accent-2: #2563eb;
+      --danger: #ef4444;
+      --warning: #38bdf8;
+      --shadow: 0 16px 38px rgba(37, 99, 235, 0.12);
+      --radius: 22px;
+      --border: 1px solid rgba(59, 130, 246, 0.14);
+      --font-body: "Segoe UI", "Tahoma", sans-serif;
+      --font-display: "Bahnschrift", "Trebuchet MS", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      -webkit-text-size-adjust: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(14,165,233,0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(37,99,235,0.14), transparent 26%),
+        linear-gradient(135deg, #eff9ff, #dff3ff 52%, #e8f0ff);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 1450px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+      border-radius: var(--radius);
+      background: var(--panel);
+      border: var(--border);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      font-family: var(--font-display);
+      color: #123a72;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .clock-box {
+      text-align: right;
+      background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(232,244,255,0.92));
+      border: var(--border);
+      border-radius: 18px;
+      padding: 14px 18px;
+      min-width: 260px;
+    }
+
+    .clock-box .time {
+      font-size: 28px;
+      font-weight: 800;
+      font-family: var(--font-display);
+      color: #0f4fc9;
+      line-height: 1;
+    }
+
+    .clock-box .date {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--panel);
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-family: var(--font-display);
+      color: #123a72;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    input, select, button {
+      width: 100%;
+      border: none;
+      outline: none;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.96);
+      color: var(--text);
+      border: 1px solid rgba(59,130,246,0.14);
+      transition: 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      border-color: rgba(14,165,233,0.65);
+      box-shadow: 0 0 0 4px rgba(14,165,233,0.15);
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding-right: 52px;
+      cursor: pointer;
+      font-weight: 600;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.98), rgba(234,245,255,0.95)) padding-box,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%231d4ed8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 16px center / 18px;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.08);
+    }
+
+    select:hover {
+      border-color: rgba(37,99,235,0.22);
+      box-shadow: 0 14px 28px rgba(37, 99, 235, 0.12);
+      transform: translateY(-1px);
+    }
+
+    select:focus {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,1), rgba(226,240,255,0.98)) padding-box,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230f4fc9' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 16px center / 18px;
+    }
+
+    select option {
+      color: #123a72;
+      background: #f7fbff;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      font-family: var(--font-display);
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: white;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+
+    .btn-ghost {
+      background: linear-gradient(135deg, #ffffff, #eef7ff);
+      color: #123a72;
+    }
+
+    .btn-group-shift {
+      width: auto;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8, var(--accent-2));
+      color: white;
+      border: none;
+      box-shadow: 0 10px 24px rgba(37,99,235,0.22);
+    }
+
+    .btn-group-shift:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-group-delete {
+      width: 40px;
+      min-width: 40px;
+      padding: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      font-size: 20px;
+      line-height: 1;
+      box-shadow: 0 10px 24px rgba(220, 38, 38, 0.22);
+    }
+
+    .btn-group-delete:hover {
+      transform: translateY(-1px);
+    }
+
+    .inline-grid {
+      display: grid;
+      grid-template-columns: 1fr 140px;
+      gap: 12px;
+    }
+
+    @media (max-width: 520px) {
+      .inline-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(15,23,42,0.08);
+      margin: 20px 0;
+      border-radius: 999px;
+    }
+
+    .settings-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .item-card {
+      background: var(--card);
+      border: var(--border);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .item-name {
+      font-weight: 800;
+      font-size: 16px;
+      font-family: var(--font-display);
+      color: #123a72;
+    }
+
+    .item-sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(14,165,233,0.12);
+      color: #0c5f86;
+      border: 1px solid rgba(14,165,233,0.16);
+      white-space: nowrap;
+    }
+
+    .pill.warning {
+      background: rgba(56,189,248,0.14);
+      color: #075985;
+      border-color: rgba(56,189,248,0.22);
+    }
+
+    .pill.danger {
+      background: rgba(239,68,68,0.12);
+      color: #b91c1c;
+      border-color: rgba(239,68,68,0.18);
+    }
+
+    .right-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .groups-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(237,246,255,0.92));
+      border: 1px solid rgba(59,130,246,0.12);
+    }
+
+    .groups-toolbar-label {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .groups-toolbar select {
+      width: auto;
+      min-width: 240px;
+    }
+
+    .icon-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid rgba(59,130,246,0.14);
+      background: linear-gradient(135deg, #ffffff, #eef6ff);
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    details.day-group {
+      background: var(--card);
+      border: var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    details.day-group + details.day-group {
+      margin-top: 14px;
+    }
+
+    details.day-group summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      font-weight: 800;
+      font-size: 16px;
+      background: linear-gradient(135deg, #f6fbff, #edf6ff);
+      flex-wrap: wrap;
+      font-family: var(--font-display);
+      color: #123a72;
+    }
+
+    details.day-group summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .day-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .day-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .day-body {
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    details.record-row {
+      border-radius: 18px;
+      background: #ffffff;
+      border: 1px solid rgba(59,130,246,0.12);
+      overflow: hidden;
+    }
+
+    details.record-row summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    details.record-row summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .summary-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .record-name {
+      font-size: 16px;
+      font-weight: 800;
+      font-family: var(--font-display);
+      color: #123a72;
+    }
+
+    .summary-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .expiry-short {
+      font-size: 14px;
+      font-weight: 700;
+      font-family: var(--font-display);
+      color: var(--text);
+      background: #f2f9ff;
+      border: 1px solid rgba(59,130,246,0.14);
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+
+    .record-details {
+      padding: 0 16px 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .record-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #f7fbff, #edf6ff);
+      border-radius: 14px;
+      padding: 12px;
+      border: 1px solid rgba(59,130,246,0.1);
+    }
+
+    .info-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .info-value {
+      font-weight: 800;
+      font-size: 15px;
+      font-family: var(--font-display);
+    }
+
+    .record-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-record-move {
+      width: auto;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #ffffff, #ebf5ff);
+      color: #123a72;
+      border: 1px solid rgba(59,130,246,0.16);
+      box-shadow: 0 8px 20px rgba(37,99,235,0.08);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none !important;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--muted);
+      border: 1px dashed rgba(59,130,246,0.2);
+      border-radius: 20px;
+      background: rgba(255,255,255,0.92);
+    }
+
+    .small-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .calc-result {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(56,189,248,0.14), rgba(37,99,235,0.12));
+      border: 1px solid rgba(37,99,235,0.18);
+    }
+
+    .calc-result-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .calc-result-value {
+      font-size: 28px;
+      font-weight: 900;
+      font-family: var(--font-display);
+      letter-spacing: -0.03em;
+      color: #1247b5;
+    }
+
+    .footer-tools {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 700px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app {
+        padding: 12px;
+      }
+
+      .topbar,
+      .panel,
+      .modal {
+        padding: 16px;
+      }
+
+      .brand h1 {
+        font-size: 24px;
+      }
+
+      .clock-box {
+        width: 100%;
+        min-width: 0;
+        text-align: left;
+      }
+
+      .clock-box .time {
+        font-size: 24px;
+      }
+
+      .section-title h2,
+      .modal-header h3 {
+        font-size: 20px;
+      }
+
+      .right-panel-header {
+        align-items: stretch;
+      }
+
+      .header-actions,
+      .groups-toolbar {
+        width: 100%;
+      }
+
+      .groups-toolbar {
+        padding: 12px;
+      }
+
+      .groups-toolbar select {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .header-actions .icon-btn {
+        width: 100%;
+        height: 48px;
+      }
+
+      details.day-group summary,
+      details.record-row summary {
+        padding: 14px;
+      }
+
+      .day-actions,
+      .summary-right,
+      .record-actions,
+      .footer-tools {
+        width: 100%;
+      }
+
+      .day-meta {
+        width: 100%;
+      }
+
+      .day-actions > button,
+      .record-actions > button,
+      .footer-tools > button {
+        width: 100% !important;
+      }
+
+      .btn-group-delete {
+        min-width: 0;
+      }
+
+      .record-info {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-overlay {
+        padding: 10px;
+      }
+
+      .modal {
+        max-height: 94vh;
+        border-radius: 22px;
+      }
+
+      .modal-scroll {
+        max-height: calc(94vh - 90px);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app {
+        padding: 10px;
+      }
+
+      .topbar,
+      .panel {
+        border-radius: 18px;
+      }
+
+      .brand h1 {
+        font-size: 22px;
+      }
+
+      .clock-box .time,
+      .calc-result-value,
+      .stat-value {
+        font-size: 22px;
+      }
+
+      input,
+      select,
+      button {
+        font-size: 14px;
+        padding: 13px 14px;
+      }
+
+      .expiry-short,
+      .pill {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    .stat-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #ffffff, #eff7ff);
+      border: var(--border);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 900;
+      font-family: var(--font-display);
+      letter-spacing: -0.03em;
+      color: #123a72;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.35);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 760px;
+      max-height: 90vh;
+      overflow: hidden;
+      background: linear-gradient(180deg, #ffffff, #f5fbff);
+      border: var(--border);
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-scroll {
+      max-height: calc(90vh - 110px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      overscroll-behavior: contain;
+      padding-right: 10px;
+      margin-right: -10px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(37,99,235,0.6) rgba(14,165,233,0.1);
+    }
+
+    .modal-scroll::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .modal-scroll::-webkit-scrollbar-track {
+      background: rgba(14,165,233,0.1);
+      border-radius: 999px;
+    }
+
+    .modal-scroll::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #60a5fa, #2563eb);
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,0.75);
+    }
+
+    .modal-scroll::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 24px;
+      font-family: var(--font-display);
+      color: #123a72;
+    }
+
+    .close-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, #eff6ff, #dcecff);
+      color: var(--text);
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .danger-zone {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(14,165,233,0.08), rgba(37,99,235,0.08));
+      border: 1px solid rgba(37,99,235,0.14);
+    }
+
+    .danger-zone h4 {
+      margin: 0 0 8px;
+      font-family: var(--font-display);
+      color: #123a72;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Калькулятор срока годности</h1>
+        <p>Учет по дате добавления и сроку окончания</p>
+      </div>
+
+      <div class="clock-box">
+        <div class="time" id="ekbTime">--:--:--</div>
+        <div class="date" id="ekbDate">Загрузка даты...</div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- LEFT -->
+      <section class="panel">
+        <div class="section-title">
+          <h2>Добавить продукцию</h2>
+        </div>
+
+        <div class="form-grid">
+          <div>
+            <label for="productSelect">Номенклатура</label>
+            <select id="productSelect"></select>
+            <div class="small-note">Для кнопки "Посчитать" выбор номенклатуры необязателен.</div>
+          </div>
+
+          <div>
+            <label for="baseDate">Дата добавления</label>
+            <input id="baseDate" type="date" />
+          </div>
+
+          <div class="inline-grid">
+            <div>
+              <label for="shelfValue">Срок</label>
+              <input id="shelfValue" type="number" min="1" placeholder="Например: 3" />
+            </div>
+
+            <div>
+              <label for="shelfUnit">Единица</label>
+              <select id="shelfUnit">
+                <option value="days" selected>Дней (суток)</option>
+                <option value="weeks">Недель</option>
+                <option value="months">Месяцев</option>
+                <option value="years">Годы</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn-primary" id="addRecordBtn">Посчитать</button>
+
+          <div class="calc-result" id="calcResult" hidden>
+            <div class="calc-result-label">Дата окончания срока</div>
+            <div class="calc-result-value" id="calcResultValue">--.--.----</div>
+          </div>
+
+          <div class="small-note">
+            Справа записи группируются по дате добавления. Теперь у каждой группы есть кнопка <b>«На след. день»</b>.
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="footer-tools">
+          <button class="btn-primary" id="saveRecordBtn">Добавить запись</button>
+          <button class="btn-ghost" id="fillNowBtn">Сегодня</button>
+          <button class="btn-danger" id="clearExpiredBtn">Удалить просрочку</button>
+        </div>
+      </section>
+
+      <!-- RIGHT -->
+      <section class="panel">
+        <div class="right-panel-header">
+          <div>
+            <div class="section-title" style="margin-bottom: 6px;">
+              <h2>Список по дате добавления</h2>
+            </div>
+            <div class="muted">Внутри каждой даты — список номенклатуры и сразу срок окончания</div>
+          </div>
+
+          <div class="header-actions">
+            <button class="icon-btn" id="openSettingsBtn" title="Управление номенклатурой">✏️</button>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-label">Всего позиций</div>
+            <div class="stat-value" id="statTotal">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Истекает сегодня</div>
+            <div class="stat-value" id="statToday">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Просрочено</div>
+            <div class="stat-value" id="statExpired">0</div>
+          </div>
+        </div>
+
+        <div class="groups-toolbar">
+          <div class="groups-toolbar-label">Упорядочивание групп</div>
+          <select id="groupSortSelect">
+            <option value="desc">Сначала новые даты</option>
+            <option value="asc">Сначала старые даты</option>
+          </select>
+        </div>
+
+        <div id="groupedRecords"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Управление номенклатурой</h3>
+        <button class="close-btn" id="closeSettingsBtn" aria-label="Закрыть">×</button>
+      </div>
+
+      <div class="modal-scroll">
+      <div class="form-grid">
+        <div class="inline-grid">
+          <div>
+            <label for="settingName">Название номенклатуры</label>
+            <input id="settingName" type="text" placeholder="Например: Молоко" />
+          </div>
+
+          <div>
+            <label for="settingShelfValue">Срок</label>
+            <input id="settingShelfValue" type="number" min="1" placeholder="3" />
+          </div>
+        </div>
+
+        <div>
+          <label for="settingShelfUnit">Единица</label>
+          <select id="settingShelfUnit">
+            <option value="days" selected>Дней (суток)</option>
+            <option value="weeks">Недель</option>
+            <option value="months">Месяцев</option>
+            <option value="years">Годы</option>
+          </select>
+        </div>
+
+        <button class="btn-primary" id="addProductBtn">Добавить номенклатуру</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-title">
+        <h2>Список номенклатуры</h2>
+        <span>Добавление и удаление</span>
+      </div>
+
+      <div class="settings-list" id="settingsList"></div>
+
+      <div class="danger-zone">
+        <h4>Очистка</h4>
+        <p class="muted">Можно удалить сразу всё, если нужно начать заново.</p>
+        <div class="footer-tools">
+          <button class="btn-danger" id="clearProductsBtn">Удалить всю номенклатуру</button>
+          <button class="btn-danger" id="clearAllRecordsBtn">Удалить все записи</button>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_PRODUCTS = "expiry_products_v3";
+    const STORAGE_RECORDS = "expiry_records_v3";
+    const STORAGE_GROUP_SORT = "expiry_group_sort_v1";
+
+    let products = load(STORAGE_PRODUCTS, [
+      { id: crypto.randomUUID(), name: "Молоко", shelfValue: 3, shelfUnit: "days" },
+      { id: crypto.randomUUID(), name: "Салат", shelfValue: 2, shelfUnit: "days" },
+      { id: crypto.randomUUID(), name: "Курица", shelfValue: 5, shelfUnit: "days" }
+    ]);
+
+    let records = load(STORAGE_RECORDS, []);
+    let groupSortOrder = load(STORAGE_GROUP_SORT, "desc");
+    let openedGroupDay = null;
+
+    const ekbTime = document.getElementById("ekbTime");
+    const ekbDate = document.getElementById("ekbDate");
+
+    const productSelect = document.getElementById("productSelect");
+    const baseDate = document.getElementById("baseDate");
+    const shelfValue = document.getElementById("shelfValue");
+    const shelfUnit = document.getElementById("shelfUnit");
+
+    const addRecordBtn = document.getElementById("addRecordBtn");
+    const saveRecordBtn = document.getElementById("saveRecordBtn");
+    const fillNowBtn = document.getElementById("fillNowBtn");
+    const clearExpiredBtn = document.getElementById("clearExpiredBtn");
+    const calcResult = document.getElementById("calcResult");
+    const calcResultValue = document.getElementById("calcResultValue");
+
+    const groupedRecords = document.getElementById("groupedRecords");
+    const groupSortSelect = document.getElementById("groupSortSelect");
+    const statTotal = document.getElementById("statTotal");
+    const statToday = document.getElementById("statToday");
+    const statExpired = document.getElementById("statExpired");
+
+    const settingsModal = document.getElementById("settingsModal");
+    const modalScroll = settingsModal.querySelector(".modal-scroll");
+    const openSettingsBtn = document.getElementById("openSettingsBtn");
+    const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+
+    const settingName = document.getElementById("settingName");
+    const settingShelfValue = document.getElementById("settingShelfValue");
+    const settingShelfUnit = document.getElementById("settingShelfUnit");
+    const addProductBtn = document.getElementById("addProductBtn");
+    const settingsList = document.getElementById("settingsList");
+
+    const clearProductsBtn = document.getElementById("clearProductsBtn");
+    const clearAllRecordsBtn = document.getElementById("clearAllRecordsBtn");
+
+    init();
+
+    function init() {
+      groupSortSelect.value = groupSortOrder;
+      renderProductsSelect();
+      renderSettingsList();
+      renderAll();
+      updateEkbClock();
+      setInterval(updateEkbClock, 1000);
+      setDefaultDateToday();
+      bindEvents();
+    }
+
+    function bindEvents() {
+      openSettingsBtn.addEventListener("click", () => settingsModal.classList.add("active"));
+      closeSettingsBtn.addEventListener("click", () => settingsModal.classList.remove("active"));
+      settingsModal.addEventListener("click", (e) => {
+        if (e.target === settingsModal) settingsModal.classList.remove("active");
+      });
+      fillNowBtn.addEventListener("click", setDefaultDateToday);
+      productSelect.addEventListener("change", handleProductSelect);
+      baseDate.addEventListener("input", clearCalculatedExpiry);
+      shelfValue.addEventListener("input", clearCalculatedExpiry);
+      shelfUnit.addEventListener("change", clearCalculatedExpiry);
+      groupSortSelect.addEventListener("change", handleGroupSortChange);
+
+      addProductBtn.addEventListener("click", addProduct);
+      addRecordBtn.addEventListener("click", calculateExpiry);
+      saveRecordBtn.addEventListener("click", addRecord);
+
+      clearProductsBtn.addEventListener("click", clearProducts);
+      clearAllRecordsBtn.addEventListener("click", clearAllRecords);
+      clearExpiredBtn.addEventListener("click", clearExpiredRecords);
+    }
+
+    function updateEkbClock() {
+      const now = new Date();
+
+      const timeFormatter = new Intl.DateTimeFormat("ru-RU", {
+        timeZone: "Asia/Yekaterinburg",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+
+      const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
+        timeZone: "Asia/Yekaterinburg",
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      });
+
+      ekbTime.textContent = timeFormatter.format(now);
+      ekbDate.textContent = `${capitalize(dateFormatter.format(now))} • Екатеринбург`;
+    }
+
+    function setDefaultDateToday() {
+      const now = new Date();
+      baseDate.value = toDateInput(now);
+      clearCalculatedExpiry();
+    }
+
+    function renderProductsSelect() {
+      const current = productSelect.value;
+      productSelect.innerHTML = `
+        <option value="">-- Выбрать номенклатуру --</option>
+        ${products.map(p => `
+          <option value="${p.id}">
+            ${escapeHtml(p.name)} — ${p.shelfValue} ${unitLabel(p.shelfUnit)}
+          </option>
+        `).join("")}
+      `;
+
+      if ([...productSelect.options].some(o => o.value === current)) {
+        productSelect.value = current;
+      }
+    }
+
+    function handleProductSelect() {
+      const product = products.find(p => p.id === productSelect.value);
+      clearCalculatedExpiry();
+      if (!product) return;
+      shelfValue.value = product.shelfValue;
+      shelfUnit.value = product.shelfUnit;
+    }
+
+    function addProduct() {
+      const name = settingName.value.trim();
+      const value = Number(settingShelfValue.value);
+      const unit = settingShelfUnit.value;
+
+      if (!name) return alert("Введите название номенклатуры");
+      if (!value || value < 1) return alert("Введите корректный срок");
+
+      products.unshift({
+        id: crypto.randomUUID(),
+        name,
+        shelfValue: value,
+        shelfUnit: unit
+      });
+
+      save(STORAGE_PRODUCTS, products);
+      renderProductsSelect();
+      renderSettingsList();
+
+      settingName.value = "";
+      settingShelfValue.value = "";
+      settingShelfUnit.value = "days";
+    }
+
+    function deleteProduct(id) {
+      if (!confirm("Удалить эту номенклатуру?")) return;
+      products = products.filter(p => p.id !== id);
+      save(STORAGE_PRODUCTS, products);
+      renderProductsSelect();
+      renderSettingsList();
+    }
+
+    function renderSettingsList() {
+      if (!products.length) {
+        settingsList.innerHTML = `<div class="empty">Номенклатура пока не добавлена</div>`;
+        return;
+      }
+
+      settingsList.innerHTML = products.map(product => `
+        <div class="item-card">
+          <div class="item-top">
+            <div>
+              <div class="item-name">${escapeHtml(product.name)}</div>
+              <div class="item-sub">Срок: ${product.shelfValue} ${prettyUnit(product.shelfValue, product.shelfUnit)}</div>
+            </div>
+            <button class="btn-danger" style="width:auto;padding:10px 14px;" onclick="deleteProduct('${product.id}')">Удалить</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function clearProducts() {
+      if (!confirm("Удалить всю номенклатуру?")) return;
+      products = [];
+      save(STORAGE_PRODUCTS, products);
+      renderProductsSelect();
+      renderSettingsList();
+    }
+
+    function handleGroupSortChange() {
+      groupSortOrder = groupSortSelect.value;
+      save(STORAGE_GROUP_SORT, groupSortOrder);
+      renderAll();
+    }
+
+    function calculateExpiry() {
+      const formData = getRecordFormData(false);
+      if (!formData) return;
+
+      const { endDate } = formData;
+      calcResultValue.textContent = formatDate(endDate);
+      calcResult.hidden = false;
+    }
+
+    function clearCalculatedExpiry() {
+      calcResult.hidden = true;
+      calcResultValue.textContent = "--.--.----";
+    }
+
+    function addRecord() {
+      const formData = getRecordFormData(true);
+      if (!formData) return;
+
+      const { name, startDate, value, unit, endDate } = formData;
+      openedGroupDay = toDateOnly(startDate);
+
+      records.unshift({
+        id: crypto.randomUUID(),
+        name,
+        startDate: startDate.toISOString(),
+        shelfValue: value,
+        shelfUnit: unit,
+        endDate: endDate.toISOString(),
+        createdAt: new Date().toISOString()
+      });
+
+      save(STORAGE_RECORDS, records);
+      calcResultValue.textContent = formatDate(endDate);
+      calcResult.hidden = false;
+      renderAll();
+      scrollToGroup(openedGroupDay);
+    }
+
+    function getRecordFormData(requireProduct = true) {
+      const selectedProduct = products.find(p => p.id === productSelect.value);
+      const name = selectedProduct?.name || "";
+      const start = baseDate.value;
+      const value = Number(shelfValue.value);
+      const unit = shelfUnit.value;
+
+      if (requireProduct && !name) {
+        alert("Выберите номенклатуру");
+        return null;
+      }
+
+      if (!start) {
+        alert("Укажите дату");
+        return null;
+      }
+
+      if (!value || value < 1) {
+        alert("Введите срок хранения");
+        return null;
+      }
+
+      const startDate = new Date(start + "T00:00:00");
+      const endDate = addToDate(startDate, value, unit);
+
+      return { name, startDate, value, unit, endDate };
+    }
+
+    function deleteRecord(id) {
+      if (!confirm("Удалить эту запись?")) return;
+      records = records.filter(r => r.id !== id);
+      save(STORAGE_RECORDS, records);
+      renderAll();
+    }
+
+    function clearAllRecords() {
+      if (!confirm("Удалить ВСЕ записи?")) return;
+      records = [];
+      openedGroupDay = null;
+      save(STORAGE_RECORDS, records);
+      renderAll();
+    }
+
+    function clearExpiredRecords() {
+      if (!confirm("Удалить все просроченные позиции?")) return;
+      const now = new Date();
+      records = records.filter(r => new Date(r.endDate) >= now);
+      save(STORAGE_RECORDS, records);
+      renderAll();
+    }
+
+    // ===== НОВАЯ ФУНКЦИЯ: ПЕРЕНОС ВСЕЙ ГРУППЫ НА СЛЕДУЮЩИЙ ДЕНЬ =====
+    function moveGroupToNextDay(day) {
+      const itemsInGroup = records.filter(r => toDateOnly(new Date(r.startDate)) === day);
+
+      if (!itemsInGroup.length) return;
+
+      const confirmText = `Перенести всю группу (${itemsInGroup.length} шт.) на следующий день?`;
+      if (!confirm(confirmText)) return;
+
+      const newRecords = itemsInGroup.map(record => {
+        const newStart = addDays(new Date(record.startDate), 1);
+        const newEnd = addDays(new Date(record.endDate), 1);
+
+        return {
+          ...record,
+          id: crypto.randomUUID(),
+          startDate: newStart.toISOString(),
+          endDate: newEnd.toISOString(),
+          createdAt: new Date().toISOString()
+        };
+      });
+
+      records = [...newRecords, ...records];
+      save(STORAGE_RECORDS, records);
+      renderAll();
+    }
+
+    function duplicateGroupToNextDay(day) {
+      const itemsInGroup = records.filter(r => toDateOnly(new Date(r.startDate)) === day);
+
+      if (!itemsInGroup.length) return;
+
+      const confirmText = `Добавить всю группу (${itemsInGroup.length} шт.) на следующий день?`;
+      if (!confirm(confirmText)) return;
+
+      const newRecords = itemsInGroup.map(record => {
+        const newStart = addDays(new Date(record.startDate), 1);
+        const newEnd = addDays(new Date(record.endDate), 1);
+
+        return {
+          ...record,
+          id: crypto.randomUUID(),
+          startDate: newStart.toISOString(),
+          endDate: newEnd.toISOString(),
+          createdAt: new Date().toISOString()
+        };
+      });
+
+      records = [...newRecords, ...records];
+      openedGroupDay = toDateOnly(addDays(new Date(day + "T00:00:00"), 1));
+      save(STORAGE_RECORDS, records);
+      renderAll();
+      scrollToGroup(openedGroupDay);
+    }
+
+    function deleteGroup(day) {
+      const itemsInGroup = records.filter(r => toDateOnly(new Date(r.startDate)) === day);
+
+      if (!itemsInGroup.length) return;
+
+      const confirmText = `Удалить всю группу за ${formatGroupDate(day)} (${itemsInGroup.length} шт.)?`;
+      if (!confirm(confirmText)) return;
+
+      records = records.filter(r => toDateOnly(new Date(r.startDate)) !== day);
+      if (openedGroupDay === day) openedGroupDay = null;
+      save(STORAGE_RECORDS, records);
+      renderAll();
+    }
+
+    function handleGroupToggle(day, isOpen) {
+      if (isOpen) {
+        openedGroupDay = day;
+
+        document.querySelectorAll(".day-group").forEach(group => {
+          if (group.dataset.day !== day) {
+            group.removeAttribute("open");
+          }
+        });
+
+        return;
+      }
+
+      if (openedGroupDay === day) {
+        openedGroupDay = null;
+      }
+    }
+
+    function moveRecordInGroup(recordId, day, direction) {
+      const groupIndexes = [];
+
+      records.forEach((record, index) => {
+        if (toDateOnly(new Date(record.startDate)) === day) {
+          groupIndexes.push(index);
+        }
+      });
+
+      const currentPosition = groupIndexes.findIndex(index => records[index].id === recordId);
+      if (currentPosition === -1) return;
+
+      const targetPosition = currentPosition + direction;
+      if (targetPosition < 0 || targetPosition >= groupIndexes.length) return;
+
+      const fromIndex = groupIndexes[currentPosition];
+      const toIndex = groupIndexes[targetPosition];
+      const nextRecords = [...records];
+
+      [nextRecords[fromIndex], nextRecords[toIndex]] = [nextRecords[toIndex], nextRecords[fromIndex]];
+
+      records = nextRecords;
+      openedGroupDay = day;
+      save(STORAGE_RECORDS, records);
+      renderAll();
+    }
+
+    function scrollToGroup(day) {
+      if (!day) return;
+
+      requestAnimationFrame(() => {
+        const targetGroup = document.querySelector(`.day-group[data-day="${day}"]`);
+        if (!targetGroup) return;
+
+        targetGroup.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      });
+    }
+
+    function renderAll() {
+      renderGroupedRecords();
+      renderStats();
+    }
+
+    // ГРУППИРОВКА ПО ДАТЕ ДОБАВЛЕНИЯ
+    function renderGroupedRecords() {
+      if (!records.length) {
+        groupedRecords.innerHTML = `<div class="empty">Список пока пуст</div>`;
+        return;
+      }
+
+      const groups = groupByStartDate(records);
+
+      groupedRecords.innerHTML = sortGroupEntries(Object.entries(groups))
+        .map(([day, items]) => {
+          const label = formatGroupDate(day);
+          return `
+            <details
+              class="day-group"
+              data-day="${day}"
+              ontoggle="handleGroupToggle('${day}', this.open)"
+              ${openedGroupDay === day ? "open" : ""}
+            >
+              <summary>
+                <div>${label}</div>
+
+                <div class="day-actions" onclick="event.stopPropagation()">
+                  <div class="day-meta">
+                    <span>${items.length} шт.</span>
+                  </div>
+                  <button
+                    class="btn-group-shift"
+                    onclick="duplicateGroupToNextDay('${day}')"
+                    title="Добавить такую же группу на следующий день"
+                  >
+                    + На след. день
+                  </button>
+                  <button
+                    class="btn-group-delete"
+                    onclick="deleteGroup('${day}')"
+                    title="Удалить всю группу"
+                    aria-label="Удалить всю группу"
+                  >
+                    ×
+                  </button>
+                </div>
+              </summary>
+
+              <div class="day-body">
+                ${items
+                  .map((record, index) => renderRecordRow(record, day, index, items.length))
+                  .join("")}
+              </div>
+            </details>
+          `;
+        })
+        .join("");
+    }
+
+    function renderRecordRow(record, day, index, total) {
+      const status = getStatus(record.endDate);
+
+      return `
+        <details class="record-row">
+          <summary>
+            <div class="summary-left">
+              <div class="record-name">${escapeHtml(record.name)}</div>
+              <div class="item-sub">${record.shelfValue} ${prettyUnit(record.shelfValue, record.shelfUnit)}</div>
+            </div>
+
+            <div class="summary-right">
+              <div class="expiry-short">До ${formatDate(record.endDate)}</div>
+              <div class="pill ${status.className}">${status.label}</div>
+            </div>
+          </summary>
+
+          <div class="record-details">
+            <div class="record-info">
+              <div class="info-box">
+                <div class="info-label">Дата добавления</div>
+                <div class="info-value">${formatDate(record.startDate)}</div>
+              </div>
+
+              <div class="info-box">
+                <div class="info-label">Срок хранения</div>
+                <div class="info-value">${record.shelfValue} ${prettyUnit(record.shelfValue, record.shelfUnit)}</div>
+              </div>
+
+              <div class="info-box">
+                <div class="info-label">Срок годности до</div>
+                <div class="info-value">${formatDate(record.endDate)}</div>
+              </div>
+
+              <div class="info-box">
+                <div class="info-label">Осталось</div>
+                <div class="info-value">${timeRemaining(record.endDate)}</div>
+              </div>
+            </div>
+
+            <div class="record-actions">
+              <button
+                class="btn-record-move"
+                onclick="moveRecordInGroup('${record.id}', '${day}', -1)"
+                ${index === 0 ? "disabled" : ""}
+              >
+                ↑ Выше
+              </button>
+              <button
+                class="btn-record-move"
+                onclick="moveRecordInGroup('${record.id}', '${day}', 1)"
+                ${index === total - 1 ? "disabled" : ""}
+              >
+                ↓ Ниже
+              </button>
+              <button class="btn-danger" style="width:auto;padding:12px 16px;" onclick="deleteRecord('${record.id}')">Удалить</button>
+            </div>
+          </div>
+        </details>
+      `;
+    }
+
+    function renderStats() {
+      const now = new Date();
+      const todayStr = toDateOnly(now);
+
+      const total = records.length;
+      const expired = records.filter(r => new Date(r.endDate) < now).length;
+      const today = records.filter(r => toDateOnly(new Date(r.endDate)) === todayStr).length;
+
+      statTotal.textContent = total;
+      statToday.textContent = today;
+      statExpired.textContent = expired;
+    }
+
+    function groupByStartDate(items) {
+      return items.reduce((acc, item) => {
+        const day = toDateOnly(new Date(item.startDate));
+        if (!acc[day]) acc[day] = [];
+        acc[day].push(item);
+        return acc;
+      }, {});
+    }
+
+    function sortGroupEntries(entries) {
+      return [...entries].sort((a, b) => {
+        if (groupSortOrder === "asc") {
+          return new Date(a[0]) - new Date(b[0]);
+        }
+
+        return new Date(b[0]) - new Date(a[0]);
+      });
+    }
+
+    function addToDate(date, value, unit) {
+      const d = new Date(date);
+      if (unit === "days") d.setDate(d.getDate() + value);
+      if (unit === "weeks") d.setDate(d.getDate() + value * 7);
+      if (unit === "months") d.setMonth(d.getMonth() + value);
+      if (unit === "years") d.setFullYear(d.getFullYear() + value);
+      return d;
+    }
+
+    function addDays(date, days) {
+      const d = new Date(date);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
+
+    function getStatus(endDate) {
+      const now = new Date();
+      const end = new Date(endDate);
+
+      if (end < now) return { label: "Просрочено", className: "danger" };
+
+      const diffDays = (end - now) / (1000 * 60 * 60 * 24);
+      if (diffDays <= 1) return { label: "Скоро истекает", className: "warning" };
+
+      return { label: "Актуально", className: "" };
+    }
+
+    function timeRemaining(endDate) {
+      const now = new Date();
+      const end = new Date(endDate);
+      let diff = end - now;
+
+      if (diff <= 0) return "Срок истёк";
+
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      if (days > 0) return `${days} дн.`;
+
+      return "Сегодня";
+    }
+
+    function formatDate(dateLike) {
+      const d = new Date(dateLike);
+      return new Intl.DateTimeFormat("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      }).format(d);
+    }
+
+    function formatGroupDate(dateStr) {
+      const d = new Date(dateStr);
+      return new Intl.DateTimeFormat("ru-RU", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      }).format(d);
+    }
+
+    function isTodayGroup(dateStr) {
+      return dateStr === toDateOnly(new Date());
+    }
+
+    function toDateOnly(date) {
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function toDateInput(date) {
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function unitLabel(unit) {
+      const map = {
+        days: "дн.",
+        weeks: "нед.",
+        months: "мес.",
+        years: "г."
+      };
+      return map[unit] || unit;
+    }
+
+    function prettyUnit(value, unit) {
+      if (unit === "days") {
+        if (value % 10 === 1 && value % 100 !== 11) return "день";
+        if ([2,3,4].includes(value % 10) && ![12,13,14].includes(value % 100)) return "дня";
+        return "дней";
+      }
+
+      if (unit === "weeks") {
+        if (value % 10 === 1 && value % 100 !== 11) return "неделя";
+        if ([2,3,4].includes(value % 10) && ![12,13,14].includes(value % 100)) return "недели";
+        return "недель";
+      }
+
+      if (unit === "months") {
+        if (value % 10 === 1 && value % 100 !== 11) return "месяц";
+        if ([2,3,4].includes(value % 10) && ![12,13,14].includes(value % 100)) return "месяца";
+        return "месяцев";
+      }
+
+      if (unit === "years") {
+        if (value % 10 === 1 && value % 100 !== 11) return "год";
+        if ([2,3,4].includes(value % 10) && ![12,13,14].includes(value % 100)) return "года";
+        return "лет";
+      }
+
+      return unit;
+    }
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function save(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function load(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    }
+  </script>
+</body>
+</html>
+
