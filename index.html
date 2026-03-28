@@ -863,6 +863,36 @@
       font-family: var(--font-display);
       color: #123a72;
     }
+
+    @media (max-width: 768px) {
+      .stat-value {
+        font-size: 24px;
+      }
+
+      .modal-overlay {
+        padding: 10px;
+      }
+
+      .modal {
+        padding: 16px;
+        max-height: 94vh;
+        border-radius: 22px;
+      }
+
+      .modal-scroll {
+        max-height: calc(94vh - 90px);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stat-value {
+        font-size: 22px;
+      }
+
+      .modal {
+        padding: 14px;
+      }
+    }
   </style>
 </head>
 <body>
